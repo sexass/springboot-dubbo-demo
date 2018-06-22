@@ -1,0 +1,14 @@
+zookeeper.connectString: 127.0.0.1:2181
+
+server:
+  port: 9909
+
+spring:
+  dubbo:
+    application:
+      name: springboot-dubbo
+    registry:
+      address: zookeeper://127.0.0.1:2181                   # zookeeper注册中心的地址
+    protocol:
+      name: dubbo
+      host: localhost

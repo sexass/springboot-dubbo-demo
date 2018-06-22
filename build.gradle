@@ -1,0 +1,101 @@
+ext{
+    jacksonVersion="2.7.4"
+    springSessionVersion="1.3.1.RELEASE"
+}
+/**
+ * gradle构建脚本
+ */
+buildscript{
+    //资源属性
+    ext{
+        springVersion = "4.2.6.RELEASE"
+        springBootVersion = "1.5.2.RELEASE"
+        aliyunRepo = "http://maven.aliyun.com/nexus/content/groups/public/"
+    }
+    //依赖包仓库
+    repositories{
+        mavenLocal()
+        mavenCentral()
+        maven { url "${aliyunRepo}" }
+    }
+    //依赖
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+/**
+ * 根项目配置
+ */
+allprojects {
+    //公共插件
+    apply plugin: "idea"
+    apply plugin: "maven"
+
+    //项目信息
+    group 'com.example'
+    version '1.0-SNAPSHOT'
+
+    //仓库配置
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url "${aliyunRepo}" }
+    }
+    //idea插件配置
+    idea {
+        module {
+            inheritOutputDirs = false
+            outputDir = file("$buildDir/classes/main/")
+        }
+    }
+}
+
+/**
+ * 所有叶子节点模块都是java模块的配置
+ */
+configure(isJavaProject()) {
+    apply plugin: "java"
+    apply plugin: 'org.springframework.boot'
+
+
+    //JVM 版本号要求
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    //依赖
+    dependencies {
+        compile fileTree(dir: "libs", include: ["*.jar"])
+        compile("com.alibaba:fastjson:1.1.40")
+
+        //不使用默认的tomcat服务器
+        compile("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+
+        compile("com.alibaba.spring.boot:dubbo-spring-boot-starter:2.0.0")
+
+        compile("org.apache.zookeeper:zookeeper:3.4.12")
+        compile("com.github.sgroschupf:zkclient:0.1")
+        
+        //test
+        testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+        testCompile("com.jayway.jsonpath:json-path")
+    }
+
+    //打包源代码
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = "sources"
+        from sourceSets.main.allSource
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+
+
+}
+
+def isJavaProject() {
+    return subprojects.findAll {
+        it.childProjects.size() == 0 && new File(it.projectDir, "src").exists() && it.name.indexOf("web") < 0
+    }
+}
+
